@@ -1,0 +1,9 @@
+streamlit
+groq
+python-dotenv
+gtts
+pillow
+requests
+audio-recorder-streamlit
+SpeechRecognition
+pydub
