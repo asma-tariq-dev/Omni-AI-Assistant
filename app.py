@@ -1,32 +1,107 @@
 import streamlit as st
-from audio_recorder_streamlit import audio_recorder
-from services.groq_service import ask_groq
-from services.image_service import generate_image
-from services.voice_service import speech_to_text, text_to_speech
 
-st.set_page_config(page_title="Omni AI Assistant", page_icon="🤖")
+from services.groq_service import ask_groq
+from utils.prompts import get_prompt
+
+
+# Page configuration
+st.set_page_config(
+    page_title="Omni AI Assistant",
+    page_icon="🤖",
+    layout="centered"
+)
+
+
 st.title("🤖 Omni AI Assistant")
 
-mode = st.sidebar.selectbox("Assistant Mode", ["General Assistant", "Coding Expert"])
-feature = st.sidebar.radio("Feature", ["💬 Text Chat", "🎤 Voice Conversation", "🖼️ Image Generator"])
+
+# Sidebar
+st.sidebar.title("Features")
+
+feature = st.sidebar.selectbox(
+    "Choose Feature",
+    [
+        "💬 Text Chat",
+        "🎤 Voice Conversation"
+    ]
+)
+
+
+# Select AI mode
+mode = st.sidebar.selectbox(
+    "AI Mode",
+    [
+        "General Assistant",
+        "Coding Assistant",
+        "Study Assistant"
+    ]
+)
+
+
+# -------------------------------
+# Chat History Memory
+# -------------------------------
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+
+# -------------------------------
+# Text Chat
+# -------------------------------
 
 if feature == "💬 Text Chat":
+
+    # Display previous messages
+    for message in st.session_state.messages:
+
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+
+    # User input
     q = st.chat_input("Ask anything...")
+
+
     if q:
-        st.write("🤖 AI:", ask_groq(q, mode))
+
+        # Store user message
+        st.session_state.messages.append(
+            {
+                "role": "user",
+                "content": q
+            }
+        )
+
+
+        # Display user message
+        with st.chat_message("user"):
+            st.write(q)
+
+
+        # Generate AI response
+        answer = ask_groq(q, mode)
+
+
+        # Store AI response
+        st.session_state.messages.append(
+            {
+                "role": "assistant",
+                "content": answer
+            }
+        )
+
+
+        # Display AI response
+        with st.chat_message("assistant"):
+            st.write(answer)
+
+
+
+# -------------------------------
+# Voice Feature
+# -------------------------------
 
 elif feature == "🎤 Voice Conversation":
-    audio = audio_recorder(text="Click and speak")
-    if audio:
-        with open("input.wav", "wb") as f:
-            f.write(audio)
-        q = speech_to_text("input.wav")
-        st.write("👤 You:", q)
-        ans = ask_groq(q, mode)
-        st.write("🤖 AI:", ans)
-        st.audio(text_to_speech(ans))
 
-else:
-    prompt = st.text_input("Enter image prompt")
-    if st.button("Generate"):
-        st.image(generate_image(prompt))
+    st.info("Voice feature code remains here.")
